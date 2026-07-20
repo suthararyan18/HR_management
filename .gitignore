@@ -1,0 +1,42 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Virtual environment
+venv/
+.env
+.env.*
+
+# SQLite database
+office.db
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup and generated folders
+node_backend_backup/
+
+# FastAPI/uvicorn logs
+*.log
+
+# Distribution / packaging
+.build/
+dist/
+*.egg-info/
+.eggs/
+
+# Ignore compiled JavaScript and minified assets if generated
+*.js.map
+*.min.js
