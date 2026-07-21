@@ -1,18 +1,20 @@
 import os
 import urllib.parse
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from the backend folder regardless of the current working directory
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+load_dotenv(BACKEND_DIR / ".env")
 
-DB_TYPE = os.getenv("DB_TYPE", "sqlite").strip().lower()
+DB_TYPE = os.getenv("DB_TYPE", "mysql").strip().lower()
 
 if DB_TYPE == "mysql":
     import pymysql
     import ssl
-    
+
     DB_HOST = os.getenv("DB_HOST", "localhost").strip()
     DB_USER = os.getenv("DB_USER", "root").strip()
     DB_PASSWORD = os.getenv("DB_PASSWORD", "").strip()
@@ -36,11 +38,11 @@ if DB_TYPE == "mysql":
                 "host": DB_HOST,
                 "user": DB_USER,
                 "password": DB_PASSWORD,
-                "port": DB_PORT
+                "port": DB_PORT,
             }
             if use_ssl:
                 connect_kwargs["ssl"] = ssl_context
-                
+
             connection = pymysql.connect(**connect_kwargs)
             cursor = connection.cursor()
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}`;")
@@ -54,17 +56,15 @@ if DB_TYPE == "mysql":
 
     # Setup MySQL URL
     encoded_password = urllib.parse.quote_plus(DB_PASSWORD)
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    
-    engine_kwargs = {}
+    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
+
+    engine_kwargs = {"pool_pre_ping": True}
     if use_ssl:
         engine_kwargs["connect_args"] = {"ssl": ssl_context}
 else:
     # Default to local SQLite
     DATABASE_URL = "sqlite:///./office.db"
-    engine_kwargs = {
-        "connect_args": {"check_same_thread": False}
-    }
+    engine_kwargs = {"connect_args": {"check_same_thread": False}}
     print("Using local SQLite Database (office.db). Zero-configuration, works offline!")
 
 engine = create_engine(DATABASE_URL, echo=False, **engine_kwargs)
@@ -74,6 +74,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Declarative Base
 Base = declarative_base()
+
 
 # Dependency to get db session
 def get_db():
