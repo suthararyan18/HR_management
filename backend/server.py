@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
@@ -46,10 +47,10 @@ app.add_middleware(
 )
 
 
-# Root route - Redirects to Swagger UI docs
+# Root route - Serve frontend index page
 @app.get("/")
 async def root():
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url="/index.html")
 
 
 # Public configuration endpoint to fetch dynamic web app branding
@@ -69,6 +70,10 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(attendance_router, prefix="/api")
 app.include_router(router_hr, prefix="/api")
 app.include_router(leaves_router, prefix="/api")
+
+# Serve frontend static files
+FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
 
 # Simple Health Route
